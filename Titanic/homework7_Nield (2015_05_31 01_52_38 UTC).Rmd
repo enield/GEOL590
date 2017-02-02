@@ -1,0 +1,119 @@
+---
+title: 'Homework 7: Titanic'
+author: "Emily Nield"
+date: "April 13, 2015"
+output: html_document
+---
+The Titanic was British Passenger ship that was hailed as being unsinkable. During its maiden voyage from Southhampton, UK to New York City, USA it hit an iceberg in the North Atlantic Ocean on April 15, 1912 and sank. This resulted in a loss of over 1500 passengers and crew members; there was originally 2,224 passengers and crew members onboard [1].  There was such a large loss in life because there were only enough lifeboats to carry 1,178 people. The evacuation procedure dictated that women and children would be evacuated first but in the end only 705 people boarded the lifeboats. People in the third class suffered the greatest loss in life; of approximately 710, only some 174 survived [1]. This leads to an interesting statistical question: Can we predict whether a person lived or died based upon their age, gender, passenger class, cabin number (lower level vs higher level), passenger fare, and their family members on board. 
+
+I predict that the following people are more likely to survive:
+.  Women and children under 12 years of age 
+.	People in first class as these rooms are closer to the lifeboats
+.	Single men as men who have a family onboard will more put their family before themselves
+
+
+## Setup
+First, let's do some preliminary work: setting the workspace, loading libraries and loading data.
+```{r set working directory}
+setwd('C:/Users/Emily/Documents/enield/homework7/')
+```
+
+
+```{r load libraries, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(GGally) 
+library(car)
+```
+
+
+
+```{r load data}
+tit <- read.csv('data/titanic.csv')
+summary(tit)
+head(tit)
+```
+
+Convert the following into categorical variables: sex, embarked, class, and survived
+```{r}
+tit$PclassC <- factor(tit$Pclass, labels=c("first", "second", "third"))
+tit$SurvivedC <- as.factor(tit$Survived)
+tit$SexC <- factor(tit$Sex, levels=c("male", "female"))
+```
+
+
+Let us examine the relationships between the variants and the survival rate.
+```{r}
+tit %>% select(PclassC, SexC, Age, SibSp, Parch, Fare, Embarked, SurvivedC) %>% ggpairs()
+```
+
+The above set of graphs included all possible variables but it appears that some variants can be excluded. Where the person embarked from does not affect whether they live or die. There is a strong  correlation between sex, age, class, and survival rate as predicted. Fare and class are related as people who paid more were in a higher class.
+
+Let's include all variants in our first regression.
+```{r}
+mod <- glm(SurvivedC ~ PclassC + SexC + Age + SibSp + Parch, data=tit,
+family=binomial(link='logit'))
+summary(mod)
+```
+
+Everything appears to be statistically significant except Parch (the number of parents or children a person has on board). This intrigues me so lets examine this further. I assumed that there would be a relationship between this and survival rate as a person with more children might be inclined to sacrifice themselves for their children to live. But this data set might be skewed by the number of parents a person has on board.  Since this data set includes children, who are more likely to survive and to have parents. This will contraddict the survival rate of parents. I wish they seperated these two data sets but they didn't so lets plot age against parch in order to see if parents (older people) would most likely die than their children.
+```{r}
+ggplot(tit) + geom_point(aes(x=Age, y=Parch, color=SurvivedC))
+```
+
+Look at the graph for those aged 25 and up (those in children bearing ages), there does not appear to be a relationship between the number of children they have and their survival rate. So we can exclude parch and rerun the regression. 
+
+```{r}
+mod1 <- glm(SurvivedC ~ PclassC + SexC + Age + SibSp, data=tit,
+family=binomial(link='logit'))
+summary(mod)
+```
+We are still seeing a strong correlation between women and survival rate and passenger class and survival rate. The AIC was previously 650 with parch included and it is now 648. So it didn't make much of a difference. All of these coefficients seem reasonable and their z value are all high enough for them to be considered significant. 
+
+Let us look at the resdiuals. 
+```{r}
+crPlots(mod1)
+```
+Everything looks good here as everything looks pretty horizontal. 
+
+Lets compare the regressions with parch (mod) and without parch (mod1) using an ANOVA.
+
+```{r}
+anova(mod1, mod, test="Chisq")
+```
+This test shows that there is not a significant differnece between these two models. This supports us dropping it from the regression. 
+
+All the other variables are significant to include so lets examine our regression (mod1) and the confidence intervals on our coefficients.
+
+Look at the Log Odds ratio
+```{r}
+cbind(coef(mod1), LOR = confint(mod1)) # Log Odds ratio
+```
+
+Look at the Odds ratio
+```{r}
+exp(cbind(coef(mod1), OR = confint(mod1))) # Odds ratio
+```
+
+Let us clean this up a bit.
+```{r}
+round(exp(cbind(coef(mod1), OR = confint(mod1))), digits=2) # a little prettier
+```
+
+This provides us with a lot of information. For example a drop in age by 1 year multiples the odds ratio by 0.94 to 0.97, i.e increases the rate of survival from 3% to 6%. 
+
+I will still look at the residual plots to see if there are any obvious errors with my regression (mod1).
+```{r}
+plot(mod1)
+```
+I see no obvious errors.
+
+Lets use our regression to show how age effects the survival rate.We will show the Passenger Class as well.
+```{r}
+pred.data <- tit
+pred.data$SibSp=1
+pred.data$pred <- predict(mod1, pred.data, type='response')
+ggplot(data=pred.data) + geom_point(aes(y=SurvivedC, x=Age, color=PclassC)) + geom_point(aes(y=pred, x=Age, color=PclassC))
+```
+
