@@ -1,0 +1,456 @@
+---
+title: "Task 4"
+author: "Emily Nield"
+date: "January 27, 2017"
+output: html_document
+---
+
+#Tufte Task
+
+![](http://www.perceptualedge.com/blog/wp-content/uploads/2009/06/largest-bankruptcies-infographic.jpg)
+
+Let's go over everything that is wrong with this plot from Newsweek. 
+
+*It's a duck!* This image was made to look visually pleasing but it is very difficult to see the data that the image is suppose to display. 
+
+The gridlines are subtlw which is nice but there is too much wasted ink.
+
+Where is the x axis? They don't have one, instead they use boats to show relative sizes for bankruptcies. This could be replacedd with an x-axis an then there would be no need for any boats. 
+
+The graph is reduant. Why bother showing the boat sizes when you are also going to put the data value in as well.
+
+Too busy with colour. The sector could be convenyed in another manner that is not a boat!
+
+#ggplot tasks
+
+## Diamond Data Frame
+
+Start by loading the ggplot package.
+```{r}
+library(ggplot2)#does this also contain the scales package?
+```
+
+For this task we will be working with the diamonds data set that is a default data set in ggplot. Let's start by previewing our data.
+
+**Question:** Determine how many rows the diamonds data set that comes loaded with ggplot2 has.
+
+There are multiple ways to do this. This data frame has 53940 rows and 10 variables.You can also do nrow().
+
+1) Sample of dataset:
+```{r}
+ggplot2::diamonds #this shows first 10 rows and displays how many more rows there are
+```
+
+2) I want to know more about what the data set is telling me so I go to the console and type ?diamonds. This will tell me what all the columns represent. 
+
+```{r}
+?diamonds #provides an overview of the entire data set
+```
+
+**Question:** Use the following code to create a reproducible subset of diamonds. Explain each line of the code in words.
+
+```{r}
+set.seed(1410) #Random number generator, this is so that the the hundred rows selcted below will be random
+dsmall <- diamonds[sample(nrow(diamonds), 100), ] #subset the diamond data frame, choose 100 random rows, and include all the columns, call this subset dsmall
+head(dsmall) #preview the new subset of the diamond data frame
+```
+
+**Question:** Use dsmall to create the following plots:
+
+**a)** A scatterplot of y vs x, colored by z values and faceted by cut.
+
+```{r}
+plot1<-ggplot(data=dsmall)+
+  geom_point(mapping=aes(x=x, y=y, color=z))+ 
+  facet_wrap(~cut, nrow=2)
+
+#start by defining what data set to pull the information from (data=dsmall) 
+#specify what type of plot to make, here we want a scatter plot (geom_point)
+#define what you want to plot (x=x, y=y), and within the scatter plot you want the points to by coloured by z values this goes inside the aesthic mapping, colour=z
+#want to have have multiple plots faceted by cut, subdivide it by 2 rows (facet_wrap(~cut, nrow=2) )
+print(plot1)
+```
+
+**b)** A scatterplot of price vs carat, colored by cut and smoothed (using the "lm" method, without standard error bars)
+
+```{r}
+plot2<-ggplot(dsmall, aes(carat, price, colour = cut)) +
+  geom_point() +
+  geom_smooth(se = FALSE, method = "lm")
+
+#start by defining what data set to pull the information from (data=dsmall) 
+#specify what type of plot to make, here we want a scatter plot (geom_point)
+#define what you want to plot (x=carat, y=price), and within the scatter plot you want the points to by coloured by cut values this goes inside the aesthic mapping, colour=cut
+#want to smooth by lm method(geom_smooth(method = "lm"))
+#Don't want to see error around smoothing, se is for display confidence interval around smooth, set se to false
+print(plot2)
+```
+
+**c)** A density plot of carat, faceted and colored by clarity
+
+```{r}
+plot3<-ggplot(dsmall, aes(carat, color=clarity)) +
+  geom_density()+ facet_wrap(~clarity, nrow=3)
+#start by defining what data set to pull the information from (data=dsmall) 
+#specify what type of plot to make, here we want a density plot (geom_density)
+#define what you want to plot (aes=carat), and within the  plot you want the points to by coloured by clarity values this goes inside the aesthic mapping, colour=clarity
+#want to have have multiple plots faceted by clarity, subdivide it by 3 rows (facet_wrap(~clarity, nrow=2) )
+print(plot3)
+```
+
+
+**d)** A boxplot of price as a function of cut 
+
+```{r}
+plot4<-ggplot(data=dsmall,mapping=aes(x=cut, y=price))+geom_boxplot()
+#start by defining what data set to pull the information from (data=dsmall) 
+#specify what type of plot to make, here we want a box plot (geom_boxplot)
+#define what you want to plot (aes(x=cut, y=price)
+print(plot4)
+```
+
+**e)** A scatterplot of y versus x. The points should be red (colour = "red"), the color of the smoothing line should be blue (colour = "blue"), and the line should be dashed with fat dashes (linetype=2). The x and y labels should be set manually as well.
+
+```{r}
+p <- ggplot(dsmall, aes(x, y))
+plot5<-p+geom_point(color="red")+xlab("x, in mm")+ylab("y, in mm")+geom_smooth(colour="blue", linetype=2)
+
+#start by defining what data set to pull the information from (data=dsmall)
+#define what you want to plot (x=x, y=y), want these points in red
+#specify what type of plot to make, here we want a scatter plot (geom_point)
+#add in the x and y labels using xlab and ylab
+#Add in smoothing line with geom_smooth, set colour as blue and make the line dashed (linetype=2)
+print(plot5)
+```
+
+##Ugly Plot
+
+There is a spurious correlation between the number of people who drowned by falling into a swimming pool and the number of films that Nicolas Cage appeared in. It is clear that this monster needs to be stopped. Data from this website: http://www.tylervigen.com/view_correlation?id=359
+
+Start by making a basic scatter plot and then make it ugly. We will make the graph misleading by using two y-axes. This is the tutorial to do a dual axis plot with gg plot. http://drawar.github.io/posts/dual-y-axis-ggplot2/ To make life easier for me. I manipulated the data in the spreadsheet before plotting it. 
+
+Load in the data.
+```{r}
+nic<-read.csv("nic.csv") #read in the data
+ggplot(nic, aes(year, death, color=type)) + #define what to plot
+  geom_point() + geom_smooth(se = FALSE)+ #set up both scatter and line plot
+  xlab("Year")+ # X axis label
+  scale_y_continuous(   
+    "Swimming Deaths (US)", limits = c(25, 150),
+    sec.axis = sec_axis(~ . * .035, name = "Nicolas Cage Films/year")) + #add in second y-axis
+ ggtitle("Nicolas Cage causes people to drown themselves")+ #add title
+  theme(plot.title = element_text(lineheight=.8, face="bold")) #modify title font
+```
+
+Great! Now let's add in a few fun deatils. Let's change the scatter point dots to images. Skulls for death and Nicolas Cage face for films. Following this tutorial to add in custom images. http://stackoverflow.com/questions/27637455/display-custom-image-as-geom-point 
+
+We need to add in the image package and load in the two images.
+
+```{r}
+library(gridGraphics)
+skull <- png::readPNG("skull.png") #load in skull image
+nic2 <- png::readPNG("nic2.png") #load in Nicolas Cage image
+
+g1 <- rasterGrob(skull, interpolate=FALSE)
+g2 <- rasterGrob(nic2, interpolate=FALSE)  
+```
+
+We will use annotation custom and place a picture of either the skull or Nick Cage over the appropraiate data point.
+
+Modify the original plot to remove the scatter points. 
+```{r}
+p<-ggplot(nic, aes(year, death, color=type)) + #define what to plot
+  geom_smooth(se = FALSE)+ #set up both scatter and line plot
+  xlab("Year")+ # X axis label
+  scale_y_continuous(   
+    "Swimming Deaths (US)", limits = c(25, 150),
+    sec.axis = sec_axis(~ . * .035, name = "Nicolas Cage Films/year")) + #add in second y-axis
+ ggtitle("Nicolas Cage causes people to drown themselves")+ #add title
+  theme(plot.title = element_text(lineheight=.8, face="bold")) #modify title font
+```
+
+
+Define all the locations for the skulls (g1) and for the Nick Cage face (g2)
+```{r}
+p +annotation_custom(g2, xmin=1998.5, xmax=1999.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=1999.5, xmax=2000.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2000.5, xmax=2001.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2001.5, xmax=2002.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2002.5, xmax=2003.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2003.5, xmax=2004.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2004.5, xmax=2005.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2005.5, xmax=2006.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2006.5, xmax=2007.5, ymin=110, ymax=118)+
+   annotation_custom(g2, xmin=2007.5, xmax=2008.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2008.5, xmax=2009.5, ymin=111, ymax=119)+
+   annotation_custom(g1, xmin=1998.5, xmax=1999.5, ymin=105, ymax=113)+
+  
+   annotation_custom(g1, xmin=1999.5, xmax=2000.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2000.5, xmax=2001.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2001.5, xmax=2002.5, ymin=116, ymax=124)+
+   annotation_custom(g1, xmin=2002.5, xmax=2003.5, ymin=91, ymax=99)+
+   annotation_custom(g1, xmin=2003.5, xmax=2004.5, ymin=81, ymax=89)+
+   annotation_custom(g1, xmin=2004.5, xmax=2005.5, ymin=93, ymax=101)+
+   annotation_custom(g1, xmin=2005.5, xmax=2006.5, ymin=119, ymax=127)+
+   annotation_custom(g1, xmin=2006.5, xmax=2007.5, ymin=136, ymax=144)+
+   annotation_custom(g1, xmin=2007.5, xmax=2008.5, ymin=90, ymax=98)+
+   annotation_custom(g1, xmin=2008.5, xmax=2009.5, ymin=141, ymax=149)
+```
+
+  
+This can be uglier! Let's add a background image. Use this titorial: https://www.r-bloggers.com/how-to-add-a-background-image-to-ggplot2-graphs/   
+
+Read in the background
+```{r}
+mer <- png::readPNG("merman.png") #load in Nicolas Cage image
+```
+
+Below is the code you will use to add in the background image:
+  
+    annotation_custom(rasterGrob(mer, 
+                               width = unit(1,"npc"), 
+                               height = unit(1,"npc")), 
+                               -Inf, Inf, -Inf, Inf) 
+  
+  
+Let's Plot!
+
+```{r}
+ggplot(nic, aes(year, death, color=type)) + #define what to plot
+  annotation_custom(rasterGrob(mer, 
+                               width = unit(1,"npc"), 
+                               height = unit(1,"npc")), 
+                               -Inf, Inf, -Inf, Inf) +
+  geom_smooth(se = FALSE)+ #set up both scatter and line plot
+  xlab("Year")+ # X axis label
+  scale_y_continuous(   
+    "Swimming Deaths (US)", limits = c(25, 150),
+    sec.axis = sec_axis(~ . * .035, name = "Nicolas Cage Films/year")) + #add in second y-axis
+ ggtitle("Proof that Nicolas Cage is a Kelpie!")+ #add title
+  theme(plot.title = element_text(lineheight=.8, face="bold"))+ #modify title font
+  annotation_custom(g2, xmin=1998.5, xmax=1999.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=1999.5, xmax=2000.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2000.5, xmax=2001.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2001.5, xmax=2002.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2002.5, xmax=2003.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2003.5, xmax=2004.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2004.5, xmax=2005.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2005.5, xmax=2006.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2006.5, xmax=2007.5, ymin=110, ymax=118)+
+   annotation_custom(g2, xmin=2007.5, xmax=2008.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2008.5, xmax=2009.5, ymin=111, ymax=119)+
+   annotation_custom(g1, xmin=1998.5, xmax=1999.5, ymin=105, ymax=113)+
+  
+   annotation_custom(g1, xmin=1999.5, xmax=2000.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2000.5, xmax=2001.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2001.5, xmax=2002.5, ymin=116, ymax=124)+
+   annotation_custom(g1, xmin=2002.5, xmax=2003.5, ymin=91, ymax=99)+
+   annotation_custom(g1, xmin=2003.5, xmax=2004.5, ymin=81, ymax=89)+
+   annotation_custom(g1, xmin=2004.5, xmax=2005.5, ymin=93, ymax=101)+
+   annotation_custom(g1, xmin=2005.5, xmax=2006.5, ymin=119, ymax=127)+
+   annotation_custom(g1, xmin=2006.5, xmax=2007.5, ymin=136, ymax=144)+
+   annotation_custom(g1, xmin=2007.5, xmax=2008.5, ymin=90, ymax=98)+
+   annotation_custom(g1, xmin=2008.5, xmax=2009.5, ymin=141, ymax=149)
+```
+
+This is great, but can we make it uglier?! Let's change the font type to comic sans.
+Tutorial: http://stackoverflow.com/questions/34522732/changing-fonts-in-ggplot2
+
+Start by loading the font library. 
+```{r}
+library(extrafont)
+loadfonts(device = "win")
+#This is my first time using fonts so I had to import them first using font_import()
+```
+
+
+```{r}
+ggplot(nic, aes(year, death, color=type)) + #define what to plot
+  annotation_custom(rasterGrob(mer, 
+                               width = unit(1,"npc"), 
+                               height = unit(1,"npc")), 
+                               -Inf, Inf, -Inf, Inf) +
+  geom_smooth(se = FALSE)+ #set up both scatter and line plot
+  ggtitle("Proof that Nicolas Cage is a Kelpie!") +
+    xlab("Year") + 
+    theme(text=element_text(size=20,  family="Comic Sans MS"))+
+  
+
+  scale_y_continuous(   
+    "Swimming Deaths (US)", limits = c(25, 150),
+    sec.axis = sec_axis(~ . * .035, name = "Nicolas Cage Films/year")) + #add in second y-axis
+  
+
+  
+  
+  annotation_custom(g2, xmin=1998.5, xmax=1999.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=1999.5, xmax=2000.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2000.5, xmax=2001.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2001.5, xmax=2002.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2002.5, xmax=2003.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2003.5, xmax=2004.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2004.5, xmax=2005.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2005.5, xmax=2006.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2006.5, xmax=2007.5, ymin=110, ymax=118)+
+   annotation_custom(g2, xmin=2007.5, xmax=2008.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2008.5, xmax=2009.5, ymin=111, ymax=119)+
+   annotation_custom(g1, xmin=1998.5, xmax=1999.5, ymin=105, ymax=113)+
+  
+   annotation_custom(g1, xmin=1999.5, xmax=2000.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2000.5, xmax=2001.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2001.5, xmax=2002.5, ymin=116, ymax=124)+
+   annotation_custom(g1, xmin=2002.5, xmax=2003.5, ymin=91, ymax=99)+
+   annotation_custom(g1, xmin=2003.5, xmax=2004.5, ymin=81, ymax=89)+
+   annotation_custom(g1, xmin=2004.5, xmax=2005.5, ymin=93, ymax=101)+
+   annotation_custom(g1, xmin=2005.5, xmax=2006.5, ymin=119, ymax=127)+
+   annotation_custom(g1, xmin=2006.5, xmax=2007.5, ymin=136, ymax=144)+
+   annotation_custom(g1, xmin=2007.5, xmax=2008.5, ymin=90, ymax=98)+
+   annotation_custom(g1, xmin=2008.5, xmax=2009.5, ymin=141, ymax=149)
+```
+
+
+We can do better! Let's mess around with the font colour.
+
+```{r}
+ggplot(nic, aes(year, death, color=type)) + #define what to plot
+  
+  annotation_custom(rasterGrob(mer,         #add in the background
+                               width = unit(1,"npc"), 
+                               height = unit(1,"npc")), 
+                               -Inf, Inf, -Inf, Inf) +
+  geom_smooth(se = FALSE)+ #set up line plot
+  ggtitle("PROOF THAT NICOLAS CAGE IS A MURDEROUS SEA KELPIE!") + #Add in title
+    xlab("Year") + #label x-axis
+  
+    theme(  #For all the text on the plot, change the font size, colour, and font type
+      
+  plot.title = element_text(color="#63d63d", size=18, face="bold.italic", family="Comic Sans MS"),
+  axis.title.x = element_text(color="#eaff00", size=18, face="bold",family="Comic Sans MS"),
+  legend.text=element_text(color="#ed872d", size=14, family="Comic Sans MS"),
+    axis.text.x = element_text(size=14, family="Comic Sans MS", color="#00bfff"),
+  axis.text.y = element_text(size=14, family="Comic Sans MS", color="#00bfff"),
+  axis.title.y = element_text(color="#9500ff", size=18, face="bold",family="Comic Sans MS"))+
+  
+
+  scale_y_continuous(   #label first y-axis
+    "Swimming Deaths (US)", limits = c(25, 150),
+    sec.axis = sec_axis(~ . * .035, name = "Nicolas Cage Films/Year")) + #add in second y-axis, and label it
+  
+
+  #add in the geom_points using the images of nick cage (g2) and skulls (g1)
+  
+  annotation_custom(g2, xmin=1998.5, xmax=1999.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=1999.5, xmax=2000.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2000.5, xmax=2001.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2001.5, xmax=2002.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2002.5, xmax=2003.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2003.5, xmax=2004.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2004.5, xmax=2005.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2005.5, xmax=2006.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2006.5, xmax=2007.5, ymin=110, ymax=118)+
+   annotation_custom(g2, xmin=2007.5, xmax=2008.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2008.5, xmax=2009.5, ymin=111, ymax=119)+
+   annotation_custom(g1, xmin=1998.5, xmax=1999.5, ymin=105, ymax=113)+
+  
+   annotation_custom(g1, xmin=1999.5, xmax=2000.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2000.5, xmax=2001.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2001.5, xmax=2002.5, ymin=116, ymax=124)+
+   annotation_custom(g1, xmin=2002.5, xmax=2003.5, ymin=91, ymax=99)+
+   annotation_custom(g1, xmin=2003.5, xmax=2004.5, ymin=81, ymax=89)+
+   annotation_custom(g1, xmin=2004.5, xmax=2005.5, ymin=93, ymax=101)+
+   annotation_custom(g1, xmin=2005.5, xmax=2006.5, ymin=119, ymax=127)+
+   annotation_custom(g1, xmin=2006.5, xmax=2007.5, ymin=136, ymax=144)+
+   annotation_custom(g1, xmin=2007.5, xmax=2008.5, ymin=90, ymax=98)+
+   annotation_custom(g1, xmin=2008.5, xmax=2009.5, ymin=141, ymax=149)
+```
+
+Now this plot is not only insulting to Nicolas Cage but also to your eyes! But let's make it worse by adding in gridlines and more ticks to the scales.
+
+
+```{r}
+ggplot(nic, aes(year, death, color=type)) + #define what to plot
+  
+  annotation_custom(rasterGrob(mer,         #add in the background
+                               width = unit(1,"npc"), 
+                               height = unit(1,"npc")), 
+                               -Inf, Inf, -Inf, Inf) +
+  geom_smooth(se = FALSE)+ #set up line plot
+  ggtitle("PROOF THAT NICOLAS CAGE IS A MURDEROUS SEA KELPIE!") + #Add in title
+    xlab("Year") + #label x-axis
+  
+    theme(  #For all the text on the plot, change the font size, colour, and font type
+      
+  plot.title = element_text(color="#63d63d", size=18, face="bold.italic", family="Comic Sans MS"),
+  axis.title.x = element_text(color="#eaff00", size=18, face="bold",family="Comic Sans MS"),
+  legend.text=element_text(color="#ed872d", size=14, family="Comic Sans MS"),
+    axis.text.x = element_text(size=14, family="Comic Sans MS", color="#00bfff"),
+  axis.text.y = element_text(size=14, family="Comic Sans MS", color="red"),
+  axis.title.y = element_text(color="#9500ff", size=18, face="bold",family="Comic Sans MS"))+
+  
+  
+
+  scale_y_continuous(   #label first y-axis
+    "Swimming Deaths (US)", limits = c(25, 150),
+    sec.axis = sec_axis(~ . * .035, name = "Nicolas Cage Films/Year")) + #add in second y-axis, and label it
+  
+  
+  #Add vertical gridlines in manually 
+   geom_vline(xintercept = 1999, linetype=2)+ 
+   geom_vline(xintercept=2000, linetype=2)+
+   geom_vline(xintercept=2001, linetype=2)+
+   geom_vline(xintercept=2002, linetype=2)+
+   geom_vline(xintercept=2003, linetype=2)+
+   geom_vline(xintercept=2004, linetype=2)+
+   geom_vline(xintercept=2005, linetype=2)+
+   geom_vline(xintercept=2006, linetype=2)+
+   geom_vline(xintercept=2007, linetype=2)+
+   geom_vline(xintercept=2008, linetype=2)+
+   geom_vline(xintercept=2009, linetype=2)+
+  
+  #add horizontal gridlines for films (teal)
+   geom_hline(yintercept=29,colour="#1EAAC2", linetype=2)+ 
+   geom_hline(yintercept=57,colour="#1EAAC2", linetype=2)+
+   geom_hline(yintercept=86,colour="#1EAAC2", linetype=2)+
+   geom_hline(yintercept=115,colour="#1EAAC2", linetype=2)+
+   geom_hline(yintercept=142,colour="#1EAAC2", linetype=2)+
+
+  
+  
+  #add horizontal gridlines for swimming deaths (red)
+   geom_hline(yintercept=20,colour="red", linetype=2)+ 
+   geom_hline(yintercept=40,colour="red", linetype=2)+
+   geom_hline(yintercept=60,colour="red", linetype=2)+
+   geom_hline(yintercept=80,colour="red", linetype=2)+
+   geom_hline(yintercept=100,colour="red", linetype=2)+
+   geom_hline(yintercept=120,colour="red", linetype=2)+
+   geom_hline(yintercept=140,colour="red", linetype=2)+
+  
+  #colour="red", linetype=2
+  
+  #add in the geom_points using the images of nick cage (g2) and skulls (g1)
+  
+  annotation_custom(g2, xmin=1998.5, xmax=1999.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=1999.5, xmax=2000.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2000.5, xmax=2001.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2001.5, xmax=2002.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2002.5, xmax=2003.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2003.5, xmax=2004.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2004.5, xmax=2005.5, ymin=53, ymax=61)+
+   annotation_custom(g2, xmin=2005.5, xmax=2006.5, ymin=82, ymax=90)+
+   annotation_custom(g2, xmin=2006.5, xmax=2007.5, ymin=110, ymax=118)+
+   annotation_custom(g2, xmin=2007.5, xmax=2008.5, ymin=25, ymax=33)+
+   annotation_custom(g2, xmin=2008.5, xmax=2009.5, ymin=111, ymax=119)+
+   annotation_custom(g1, xmin=1998.5, xmax=1999.5, ymin=105, ymax=113)+
+  
+   annotation_custom(g1, xmin=1999.5, xmax=2000.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2000.5, xmax=2001.5, ymin=98, ymax=106)+
+   annotation_custom(g1, xmin=2001.5, xmax=2002.5, ymin=116, ymax=124)+
+   annotation_custom(g1, xmin=2002.5, xmax=2003.5, ymin=91, ymax=99)+
+   annotation_custom(g1, xmin=2003.5, xmax=2004.5, ymin=81, ymax=89)+
+   annotation_custom(g1, xmin=2004.5, xmax=2005.5, ymin=93, ymax=101)+
+   annotation_custom(g1, xmin=2005.5, xmax=2006.5, ymin=119, ymax=127)+
+   annotation_custom(g1, xmin=2006.5, xmax=2007.5, ymin=136, ymax=144)+
+   annotation_custom(g1, xmin=2007.5, xmax=2008.5, ymin=90, ymax=98)+
+   annotation_custom(g1, xmin=2008.5, xmax=2009.5, ymin=141, ymax=149)
+```
+
