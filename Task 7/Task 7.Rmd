@@ -3,7 +3,7 @@ title: "Task 7"
 author: "Emily Nield"
 date: "February 24, 2017"
 output:
-  md_document: default
+  html_document: default
     
 
 ---
@@ -159,7 +159,7 @@ top10 <- babynames %>%
 ```
 
 
-I know have a data frame of top 10 names. I can merge it with the babynames data frame using a left join with top 10 as the primary data frame. This will ensure that only the names that appear in the top ten will be preserved.  Need to eliminate the prop column.
+I now have a data frame of top 10 names. I can merge it with the babynames data frame using a left join with top 10 as the primary data frame. This will ensure that only the names that appear in the top ten will be preserved.  Need to eliminate the prop column.
 ```{r}
 top10_all<-top10%>%
   left_join(babynames, by="name", na.rm=TRUE)
@@ -177,7 +177,11 @@ top10_mf<-top10%>%
 
 Now that we have our data set lets plot!
 ```{r}
-name_plot<-ggplot(top10_mf, aes(x=year,y=n, colour=sex))+geom_point()+ylab("Frequency of Names")+facet_wrap(~name)
+name_plot<-ggplot(top10_mf, aes(x=year,y=prop, colour=sex))+
+  geom_point()+
+  ylab("Frequency of Names")+
+  facet_wrap(~name)+
+  scale_color_manual(values = wes_palette("Moonrise3")) 
 print(name_plot)
 ```
 
@@ -229,7 +233,8 @@ Plot the data:
 ```{r}
 storm_plot<-ggplot(storms,aes(x=month, y=mean_speed, group=factor(year), color=factor(year)))+
   geom_point()+
-  ylab("Mean Hurricane Wind Speed")+facet_wrap(~year)
+  ylab("Mean Hurricane Wind Speed")+facet_wrap(~year)+
+  scale_color_manual(values = wes_palette("BottleRocket")) 
 print(storm_plot)
 ```
 

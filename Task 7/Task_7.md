@@ -323,7 +323,7 @@ First determine top 10 baby names in 2014:
       rename(sex2 = sex)%>% #renamind sex column becuase it will make it easier to join in next step
      select(name,sex2)  #only intrested in the name and sex, will keep only one col, it will make it easier for the next step below
 
-I know have a data frame of top 10 names. I can merge it with the
+I now have a data frame of top 10 names. I can merge it with the
 babynames data frame using a left join with top 10 as the primary data
 frame. This will ensure that only the names that appear in the top ten
 will be preserved. Need to eliminate the prop column.
@@ -359,7 +359,11 @@ that I can remove rows where sex2 does not equal sex.
 
 Now that we have our data set lets plot!
 
-    name_plot<-ggplot(top10_mf, aes(x=year,y=n, colour=sex))+geom_point()+ylab("Frequency of Names")+facet_wrap(~name)
+    name_plot<-ggplot(top10_mf, aes(x=year,y=prop, colour=sex))+
+      geom_point()+
+      ylab("Frequency of Names")+
+      facet_wrap(~name)+
+      scale_color_manual(values = wes_palette("Moonrise3")) 
     print(name_plot)
 
 ![](images/unnamed-chunk-19-1.png)
@@ -459,7 +463,8 @@ Plot the data:
 
     storm_plot<-ggplot(storms,aes(x=month, y=mean_speed, group=factor(year), color=factor(year)))+
       geom_point()+
-      ylab("Mean Hurricane Wind Speed")+facet_wrap(~year)
+      ylab("Mean Hurricane Wind Speed")+facet_wrap(~year)+
+      scale_color_manual(values = wes_palette("BottleRocket")) 
     print(storm_plot)
 
 ![](images/unnamed-chunk-24-1.png)
