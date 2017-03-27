@@ -1,0 +1,5 @@
+"0","ggplot(data=diamonds)+"
+"0","  geom_bar(mapping=aes(cut, fill=cut))+ "
+"0","  scale_fill_manual(values = film_palette(""ClockworkOrange""))+"
+"0","   ggtitle(""Clockwork Orange"")+"
+"0","  theme(plot.title = element_text(hjust = 0.5))"
