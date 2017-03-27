@@ -1,0 +1,8 @@
+"0","df.team_data <- expand.grid(teams = c(""Team A"", ""Team B"", ""Team C"", ""Team D"")"
+"0","                           ,metrics = c(""Metric 1"", ""Metric 2"", ""Metric 3"", ""Metric 4"", ""Metric 5"")"
+"0","                           )"
+"0","# add variable: performance"
+"0","set.seed(41)"
+"0","df.team_data$performance <- rnorm(nrow(df.team_data))"
+"0","#inspect"
+"0","head(df.team_data)"

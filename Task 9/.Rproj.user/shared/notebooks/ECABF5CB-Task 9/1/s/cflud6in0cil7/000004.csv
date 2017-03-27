@@ -1,0 +1,4 @@
+"0","ggplot(data=diamonds)+geom_bar(mapping=aes(cut, fill=cut))+ "
+"0","   scale_fill_manual(values = film_palette(""TheRevenant""))+"
+"0","   ggtitle(""The Revenant"")+"
+"0","  theme(plot.title = element_text(hjust = 0.5))"
